@@ -54,6 +54,6 @@ sealed class Screen(
     )
 
     companion object {
-        val bottomNavItems = listOf(Habits, Tasks, Reminders, Settings)
+        val bottomNavItems = listOf(Habits, Tasks, Reminders)
     }
 }

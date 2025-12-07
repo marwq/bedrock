@@ -85,9 +85,5 @@ fun NavGraph(
         composable(Screen.Reminders.route) {
             RemindersScreen()
         }
-
-        composable(Screen.Settings.route) {
-            SettingsScreen()
-        }
     }
 }

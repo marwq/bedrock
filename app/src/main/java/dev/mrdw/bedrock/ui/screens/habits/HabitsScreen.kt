@@ -41,8 +41,15 @@ fun HabitsScreen(
 ) {
     val habitsWithCompletions by viewModel.habitsWithCompletions.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
+    val allCompletions by viewModel.allCompletions.collectAsState(initial = emptyList())
+    val allHabits by viewModel.habits.collectAsState()
     val daysOfWeek = remember { viewModel.getDaysOfWeek() }
     val today = LocalDate.now()
+
+    // Debug: print database contents on screen load
+    LaunchedEffect(Unit) {
+        viewModel.printDatabaseContents()
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -85,10 +92,28 @@ fun HabitsScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     items(daysOfWeek) { date ->
+                        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                        val dateString = date.format(dateFormatter)
+
+                        // Check if any habits were completed on this date
+                        val completionsCount = allCompletions.count {
+                            it.date == dateString && it.completed
+                        }
+
+                        // Show sad emoji if:
+                        // 1. Day is in the past
+                        // 2. There are habits in the system
+                        // 3. But no habits were completed on this day
+                        val shouldShowSadEmoji = date.isBefore(today) &&
+                                                 allHabits.isNotEmpty() &&
+                                                 completionsCount == 0
+
                         DayItem(
                             date = date,
                             isSelected = date == selectedDate,
                             isToday = date == today,
+                            hasCompletions = completionsCount > 0,
+                            shouldShowSadEmoji = shouldShowSadEmoji,
                             onClick = { viewModel.selectDate(date) }
                         )
                     }
@@ -132,7 +157,7 @@ fun HabitsScreen(
                         HabitItem(
                             habitWithCompletion = habitWithCompletion,
                             selectedDate = selectedDate,
-                            canEdit = selectedDate >= today,
+                            canEdit = selectedDate == today,  // Only today can be edited
                             onToggleCompletion = {
                                 viewModel.toggleHabitCompletion(habitWithCompletion.habit.id)
                             },
@@ -151,6 +176,8 @@ fun DayItem(
     date: LocalDate,
     isSelected: Boolean,
     isToday: Boolean,
+    hasCompletions: Boolean,
+    shouldShowSadEmoji: Boolean,
     onClick: () -> Unit
 ) {
     val dayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
@@ -158,36 +185,52 @@ fun DayItem(
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .width(56.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                if (isSelected) MaterialTheme.colorScheme.primary
-                else if (isToday) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.surfaceVariant
-            )
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text(
-            text = dayName,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Medium
-            ),
-            color = if (isSelected) Color.White
-            else if (isToday) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-        )
-        Text(
-            text = dayNumber.toString(),
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.SemiBold
-            ),
-            color = if (isSelected) Color.White
-            else if (isToday) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        // Sad emoji for past days with no completions
+        if (shouldShowSadEmoji) {
+            Text(
+                text = "☹️",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(bottom = 2.dp)
+            )
+        } else {
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .width(56.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    if (isSelected) MaterialTheme.colorScheme.primary
+                    else if (isToday) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceVariant
+                )
+                .clickable(onClick = onClick)
+                .padding(vertical = 12.dp)
+        ) {
+            Text(
+                text = dayName,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                color = if (isSelected) Color.White
+                else if (isToday) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+            Text(
+                text = dayNumber.toString(),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.SemiBold
+                ),
+                color = if (isSelected) Color.White
+                else if (isToday) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

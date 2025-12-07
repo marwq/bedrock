@@ -10,6 +10,8 @@ class TaskRepository(private val taskDao: TaskDao) {
 
     fun getCompletedTasks(): Flow<List<Task>> = taskDao.getCompletedTasks()
 
+    fun getAllTasks(): Flow<List<Task>> = taskDao.getAllTasks()
+
     fun getTasksForToday(startOfDay: Long, endOfDay: Long): Flow<List<Task>> =
         taskDao.getTasksForToday(startOfDay, endOfDay)
 

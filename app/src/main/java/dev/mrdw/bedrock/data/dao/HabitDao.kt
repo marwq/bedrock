@@ -35,6 +35,9 @@ interface HabitDao {
     @Query("SELECT * FROM habit_completions WHERE date = :date")
     fun getCompletionsForDate(date: String): Flow<List<HabitCompletion>>
 
+    @Query("SELECT * FROM habit_completions")
+    fun getAllCompletions(): Flow<List<HabitCompletion>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCompletion(completion: HabitCompletion)
 
