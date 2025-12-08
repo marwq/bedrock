@@ -26,7 +26,6 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
 
     val habits: StateFlow<List<Habit>>
     val habitsWithCompletions: StateFlow<List<HabitWithCompletion>>
-    val allCompletions: Flow<List<HabitCompletion>>
 
     private val completionsForDate: StateFlow<List<HabitCompletion>>
 
@@ -54,9 +53,11 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
             completionsForDate,
             _selectedDate
         ) { habitsList, completions, selectedDate ->
-            // Show ALL habits for any date (they are global, not date-specific)
-            habitsList.map { habit ->
-                // Check if this habit is completed on the selected date
+            habitsList.filter { habit ->
+                // Only show habits created on or before selected date
+                val habitCreatedDate = LocalDate.ofEpochDay(habit.createdAt / (24 * 60 * 60 * 1000))
+                !habitCreatedDate.isAfter(selectedDate)
+            }.map { habit ->
                 val completion = completions.find { it.habitId == habit.id }
                 HabitWithCompletion(
                     habit = habit,
@@ -68,9 +69,6 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-
-        // Get all completions for calendar view
-        allCompletions = repository.getAllCompletions()
     }
 
     fun selectDate(date: LocalDate) {
@@ -81,8 +79,8 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
         val selectedDate = _selectedDate.value
         val today = LocalDate.now()
 
-        // Only allow toggling for today (not past, not future)
-        if (selectedDate == today) {
+        // Only allow toggling for today or future dates
+        if (!selectedDate.isBefore(today)) {
             viewModelScope.launch {
                 repository.toggleCompletion(habitId, selectedDate)
             }
@@ -97,75 +95,10 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
 
     fun getDaysOfWeek(): List<LocalDate> {
         val today = LocalDate.now()
-        // Show today + next 6 days (7 days total)
         return (0..6).map { today.plusDays(it.toLong()) }
     }
 
     suspend fun getStreak(habitId: Long): Int {
         return repository.getCurrentStreak(habitId)
-    }
-
-    // Debug function to print database contents
-    fun printDatabaseContents() {
-        viewModelScope.launch {
-            val allHabits = repository.getAllActiveHabits().first()
-            val allCompletions = repository.getAllCompletions().first()
-
-            android.util.Log.d("DATABASE", "========== HABITS ==========")
-            allHabits.forEach { habit ->
-                val createdDate = LocalDate.ofEpochDay(habit.createdAt / (24 * 60 * 60 * 1000))
-                android.util.Log.d("DATABASE", "Habit: id=${habit.id}, name=${habit.name}, createdAt=$createdDate")
-            }
-
-            android.util.Log.d("DATABASE", "========== COMPLETIONS ==========")
-            allCompletions.forEach { completion ->
-                android.util.Log.d("DATABASE", "Completion: id=${completion.id}, habitId=${completion.habitId}, date=${completion.date}, completed=${completion.completed}")
-            }
-
-            android.util.Log.d("DATABASE", "Total habits: ${allHabits.size}, Total completions: ${allCompletions.size}")
-        }
-    }
-
-    // Test function to add sample data
-    fun addSampleData() {
-        viewModelScope.launch {
-            val today = LocalDate.now()
-
-            // Create sample habits (created today - timestamp doesn't matter much now)
-            repository.insertHabit(
-                Habit(
-                    name = "Morning Workout",
-                    description = "30 minutes exercise",
-                    emojiIcon = "🏃",
-                    timeHour = 7,
-                    timeMinute = 0,
-                    createdAt = System.currentTimeMillis()
-                )
-            )
-
-            repository.insertHabit(
-                Habit(
-                    name = "Read",
-                    description = "30 minutes of reading",
-                    emojiIcon = "📚",
-                    timeHour = 21,
-                    timeMinute = 0,
-                    createdAt = System.currentTimeMillis()
-                )
-            )
-
-            repository.insertHabit(
-                Habit(
-                    name = "Meditation",
-                    description = "10 minutes mindfulness",
-                    emojiIcon = "🧘",
-                    timeHour = 8,
-                    timeMinute = 30,
-                    createdAt = System.currentTimeMillis()
-                )
-            )
-
-            // No completions created - user will mark them manually for today
-        }
     }
 }

@@ -34,9 +34,6 @@ class HabitRepository(private val habitDao: HabitDao) {
     fun getCompletionsForDate(date: LocalDate): Flow<List<HabitCompletion>> =
         habitDao.getCompletionsForDate(date.format(dateFormatter))
 
-    fun getAllCompletions(): Flow<List<HabitCompletion>> =
-        habitDao.getAllCompletions()
-
     suspend fun toggleCompletion(habitId: Long, date: LocalDate) {
         val dateString = date.format(dateFormatter)
         val existing = habitDao.getCompletion(habitId, dateString)
