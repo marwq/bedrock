@@ -53,6 +53,13 @@ sealed class Screen(
         unselectedIcon = Icons.Outlined.Edit
     )
 
+    data object ReminderEditor : Screen(
+        route = "reminder_editor",
+        title = "Reminder Editor",
+        selectedIcon = Icons.Filled.Edit,
+        unselectedIcon = Icons.Outlined.Edit
+    )
+
     companion object {
         val bottomNavItems = listOf(Habits, Tasks, Reminders)
     }

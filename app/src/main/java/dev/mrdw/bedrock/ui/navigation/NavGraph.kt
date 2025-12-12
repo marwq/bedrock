@@ -11,6 +11,7 @@ import dev.mrdw.bedrock.ui.screens.habits.HabitEditorScreen
 import dev.mrdw.bedrock.ui.screens.tasks.TasksScreen
 import dev.mrdw.bedrock.ui.screens.tasks.TaskEditorScreen
 import dev.mrdw.bedrock.ui.screens.reminders.RemindersScreen
+import dev.mrdw.bedrock.ui.screens.reminders.ReminderEditorScreen
 import dev.mrdw.bedrock.ui.screens.settings.SettingsScreen
 
 @Composable
@@ -83,7 +84,26 @@ fun NavGraph(
         }
 
         composable(Screen.Reminders.route) {
-            RemindersScreen()
+            RemindersScreen(
+                onNavigateToReminderEditor = { reminderId ->
+                    if (reminderId != null) {
+                        navController.navigate("${Screen.ReminderEditor.route}/$reminderId")
+                    } else {
+                        navController.navigate("${Screen.ReminderEditor.route}/new")
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = "${Screen.ReminderEditor.route}/{reminderId}",
+            arguments = listOf(navArgument("reminderId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val reminderId = backStackEntry.arguments?.getString("reminderId")
+            ReminderEditorScreen(
+                reminderId = if (reminderId == "new") null else reminderId?.toLongOrNull(),
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }
