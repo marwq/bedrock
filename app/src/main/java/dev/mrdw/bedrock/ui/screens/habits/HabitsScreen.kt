@@ -37,6 +37,7 @@ import java.util.*
 @Composable
 fun HabitsScreen(
     onNavigateToHabitEditor: (Long?) -> Unit,
+    onNavigateToCalendar: () -> Unit = {},
     viewModel: HabitsViewModel = viewModel()
 ) {
     val habitsWithCompletions by viewModel.habitsWithCompletions.collectAsState()
@@ -75,14 +76,34 @@ fun HabitsScreen(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 20.dp, vertical = 24.dp)
             ) {
-                Text(
-                    text = "Habits",
-                    style = MaterialTheme.typography.displaySmall.copy(
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = (-1).sp
-                    ),
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Habits",
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-1).sp
+                        ),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    IconButton(
+                        onClick = onNavigateToCalendar,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = "Calendar View",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 

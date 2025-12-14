@@ -46,6 +46,13 @@ sealed class Screen(
         unselectedIcon = Icons.Outlined.Edit
     )
 
+    data object HabitCalendar : Screen(
+        route = "habit_calendar",
+        title = "Habit Calendar",
+        selectedIcon = Icons.Filled.DateRange,
+        unselectedIcon = Icons.Outlined.DateRange
+    )
+
     data object TaskEditor : Screen(
         route = "task_editor",
         title = "Task Editor",

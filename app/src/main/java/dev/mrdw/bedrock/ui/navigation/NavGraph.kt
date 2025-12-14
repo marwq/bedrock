@@ -8,6 +8,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.compose.composable
 import dev.mrdw.bedrock.ui.screens.habits.HabitsScreen
 import dev.mrdw.bedrock.ui.screens.habits.HabitEditorScreen
+import dev.mrdw.bedrock.ui.screens.habits.HabitCalendarScreen
 import dev.mrdw.bedrock.ui.screens.tasks.TasksScreen
 import dev.mrdw.bedrock.ui.screens.tasks.TaskEditorScreen
 import dev.mrdw.bedrock.ui.screens.reminders.RemindersScreen
@@ -33,6 +34,9 @@ fun NavGraph(
                     } else {
                         navController.navigate("${Screen.HabitEditor.route}/new")
                     }
+                },
+                onNavigateToCalendar = {
+                    navController.navigate(Screen.HabitCalendar.route)
                 }
             )
         }
@@ -57,6 +61,12 @@ fun NavGraph(
                 onNavigateToDuplicate = { id ->
                     navController.navigate("${Screen.HabitEditor.route}/new?duplicateFrom=$id")
                 }
+            )
+        }
+
+        composable(Screen.HabitCalendar.route) {
+            HabitCalendarScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
